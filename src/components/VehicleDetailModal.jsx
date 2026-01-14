@@ -278,7 +278,7 @@ export function VehicleDetailModal({
                                                 <span>주행거리</span>
                                             </div>
                                             <div className="text-gray-900">
-                                                {vehicle.mileage.toLocaleString()} km
+                                                {vehicle.mileage} km
                                             </div>
                                         </div>
                                     </div>

@@ -220,7 +220,7 @@ export function VehicleList() {
                         <tbody className="divide-y divide-gray-200">
                         {filteredVehicles.map((vehicle) => (
                             <tr
-                                key={vehicle.carId}
+                                key={vehicle.id}
                                 onClick={() => setSelectedVehicle(vehicle)}
                                 className="hover:bg-blue-50 transition-colors cursor-pointer"
                             >

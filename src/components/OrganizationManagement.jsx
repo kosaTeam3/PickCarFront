@@ -9,7 +9,7 @@ import {extractContent} from "@/api/api";
 export function OrganizationManagement() {
     const [branches, setBranches] = useState(mockBranches);
     const employees = useMemo(() => mockEmployees, []);
-    const [totalBranches, setTotalBranches] = useState([]);
+    const [totalBranches, setTotalBranches] = useState(0);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
