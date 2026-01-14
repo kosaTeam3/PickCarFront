@@ -21,34 +21,74 @@ export function deleteVehicle(vehicleId) {
     return api(`/api/manager/vehicles/${vehicleId}`, {method: "DELETE"});
 }
 
-export function toVehicleUiModel(dto) {
+const TODO_VALUE = "TODO";
+
+export function toVehicleListUiModel(dto) {
     return {
         id: dto.carId,
         carId: dto.carId,
 
-        vehicleCode: dto.vehicleIdNumber,
-        vehicleIdNum: dto.vehicleIdNumber,
+        vehicleCode: dto.vehicleIdNumber ?? TODO_VALUE,
+        vehicleIdNum: dto.vehicleIdNumber ?? TODO_VALUE,
 
-        carImage: dto.image,
-        model: dto.model,
-        carNumber: dto.carNumber,
+        carImage: dto.image ?? "",
+        imageUrl: dto.image ?? "",
+        model: dto.model ?? TODO_VALUE,
+        carNumber: dto.carNumber ?? TODO_VALUE,
+        licensePlate: dto.carNumber ?? TODO_VALUE,
 
-        location: dto.branchName ?? "",
+        location: dto.branchName ?? TODO_VALUE,
 
         mileage: Number(dto.mileage ?? 0),
         ageLimit: dto.ageLimit ?? 0,
+        year: dto.year ?? TODO_VALUE,
 
         // ✅ UI 표기용
-        status: STATUS_KO[dto.status] ?? dto.status,
-        fuelType: FUEL_KO[dto.fuelType] ?? dto.fuelType,
+        status: STATUS_KO[dto.status] ?? (dto.status ?? TODO_VALUE),
+        fuelType: FUEL_KO[dto.fuelType] ?? (dto.fuelType ?? TODO_VALUE),
 
         // ✅ 내부값도 같이 들고 있으면 필터/색상 로직 편함
-        statusCode: dto.status,
-        fuelTypeCode: dto.fuelType,
+        statusCode: dto.status ?? "",
+        fuelTypeCode: dto.fuelType ?? "",
 
-        color: dto.color,
-        branchId: dto.branchId,
-        branchName: dto.branchName,
+        color: dto.color ?? TODO_VALUE,
+        branchId: dto.branchId ?? null,
+        branchName: dto.branchName ?? null,
+    };
+}
+
+export function toVehicleDetailUiModel(dto) {
+    return {
+        id: dto.carId,
+        carId: dto.carId,
+        vehicleCode: dto.vehicleIdNumber ?? TODO_VALUE,
+        vehicleIdNum: dto.vehicleIdNumber ?? TODO_VALUE,
+        model: dto.model ?? TODO_VALUE,
+        brand: dto.brand ?? TODO_VALUE,
+        price: dto.price ?? 0,
+        year: dto.year ?? TODO_VALUE,
+        ageLimit: dto.ageLimit ?? 0,
+        fuelType: FUEL_KO[dto.fuelType] ?? (dto.fuelType ?? TODO_VALUE),
+        fuelTypeCode: dto.fuelType ?? "",
+        carImage: dto.image ?? "",
+        imageUrl: dto.image ?? "",
+        branchId: dto.branchId ?? null,
+        carNumber: dto.carNumber ?? TODO_VALUE,
+        licensePlate: dto.carNumber ?? TODO_VALUE,
+        mileage: Number(dto.mileage ?? 0),
+        maintenanceDate: dto.maintenanceDate ?? TODO_VALUE,
+        insurance: dto.insuranceName ?? TODO_VALUE,
+        insuranceType: TODO_VALUE,
+        status: STATUS_KO[dto.status] ?? (dto.status ?? TODO_VALUE),
+        statusCode: dto.status ?? "",
+        purchasePrice: dto.purchasePrice ?? 0,
+        modelPrice: dto.modelPrice ?? 0,
+        seater: dto.seater ?? 0,
+        color: dto.color ?? TODO_VALUE,
+        registeredDate: TODO_VALUE,
+        inspectionDate: dto.maintenanceDate ?? TODO_VALUE,
+        location: TODO_VALUE,
+        minAge: dto.ageLimit ?? 0,
     };
 }
 

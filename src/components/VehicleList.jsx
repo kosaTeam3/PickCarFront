@@ -3,7 +3,7 @@ import {Filter, Plus, Search} from "lucide-react";
 import {AddVehicleModal} from "./AddVehicleModal";
 import {VehicleDetailModal} from "./VehicleDetailModal";
 import {mockVehicles} from "@/mocks/vehicles";
-import {getVehicleList, toVehicleUiModel} from "@/api/vehicle";
+import {getVehicleDetail, getVehicleList, toVehicleDetailUiModel, toVehicleListUiModel} from "@/api/vehicle";
 import {extractContent} from "@/api/api";
 
 export function VehicleList() {
@@ -32,7 +32,7 @@ export function VehicleList() {
                 const data = res?.data ?? res;
                 const content = extractContent(data);
 
-                const mapped = content.map(toVehicleUiModel);
+                const mapped = content.map(toVehicleListUiModel);
                 if (!ignore) setVehicles(mapped);
             } catch (e) {
                 if (!ignore) setError(e?.message ?? String(e))
@@ -96,6 +96,25 @@ export function VehicleList() {
     const locations = useMemo(() => {
         return Array.from(new Set(vehicles.map((v) => v.location.split(" ")[0])));
     }, [vehicles]);
+
+    const handleSelectVehicle = async (vehicle) => {
+        setSelectedVehicle(vehicle);
+
+        try {
+            const res = await getVehicleDetail(vehicle.carId ?? vehicle.id);
+            const data = res?.data ?? res;
+            const mapped = toVehicleDetailUiModel(data);
+
+            setSelectedVehicle((prev) => (prev ? {...prev, ...mapped} : mapped));
+            setVehicles((prev) =>
+                prev.map((item) =>
+                    item.carId === vehicle.carId ? {...item, ...mapped} : item
+                )
+            );
+        } catch (e) {
+            setError(e?.message ?? String(e));
+        }
+    };
 
     return (
         <div className="p-8">
@@ -221,7 +240,7 @@ export function VehicleList() {
                         {filteredVehicles.map((vehicle) => (
                             <tr
                                 key={vehicle.carId}
-                                onClick={() => setSelectedVehicle(vehicle)}
+                                onClick={() => handleSelectVehicle(vehicle)}
                                 className="hover:bg-blue-50 transition-colors cursor-pointer"
                             >
                                 <td className="px-6 py-4 text-gray-600">
@@ -237,7 +256,7 @@ export function VehicleList() {
                                         <div>
                                             <div className="text-gray-900">{vehicle.model}</div>
                                             {/*todo 년도 수정필요*/}
-                                            <div className="text-gray-500">{9999}년형</div>
+                                            <div className="text-gray-500">{vehicle.year}년형</div>
                                         </div>
                                     </div>
                                 </td>
@@ -261,7 +280,7 @@ export function VehicleList() {
                                 <td className="px-6 py-4">
                     <span
                         className={`inline-block px-3 py-1 rounded-full ${getStatusColor(
-                            vehicle.color
+                            vehicle.status
                         )}`}
                     >
                       {vehicle.status}
