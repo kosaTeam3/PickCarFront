@@ -22,11 +22,11 @@ export function OrganizationManagement() {
             setError("");
 
             try {
-                const res = await getBranchList({page: 0, size: 20});
+                const res = await getBranchList({page: 0, size: 30});
                 const content = extractContent(res);
 
                 const mapped = content.map(toBranchUiModel);
-                setTotalBranches(res.totalElements)
+                if (!ignore) setTotalBranches(res.totalElements)
                 if (!ignore) setBranches(mapped);
             } catch (e) {
                 if (!ignore) setError(e?.message ?? String(e));
