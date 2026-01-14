@@ -1,0 +1,32 @@
+export const mockRentalHistory = [
+  {
+    id: "1",
+    vehicleId: "1",
+    memberName: "홍길동",
+    memberId: "1",
+    startDate: "2024-12-20",
+    endDate: "2024-12-25",
+    totalCost: 250000,
+    status: "완료",
+  },
+  {
+    id: "2",
+    vehicleId: "1",
+    memberName: "김영수",
+    memberId: "2",
+    startDate: "2024-11-10",
+    endDate: "2024-11-15",
+    totalCost: 300000,
+    status: "완료",
+  },
+  {
+    id: "3",
+    vehicleId: "1",
+    memberName: "이지은",
+    memberId: "3",
+    startDate: "2024-10-05",
+    endDate: "2024-10-08",
+    totalCost: 180000,
+    status: "완료",
+  },
+];

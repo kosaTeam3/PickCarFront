@@ -1,0 +1,38 @@
+export const mockMaintenanceRecords = [
+  {
+    id: "1",
+    vehicleId: "1",
+    date: "2024-12-15",
+    type: "정기점검",
+    cost: 150000,
+    description: "엔진오일 교체, 브레이크 패드 점검",
+    status: "완료",
+  },
+  {
+    id: "2",
+    vehicleId: "1",
+    date: "2024-09-20",
+    type: "타이어 교체",
+    cost: 480000,
+    description: "4륜 타이어 교체",
+    status: "완료",
+  },
+  {
+    id: "3",
+    vehicleId: "2",
+    date: "2025-01-05",
+    type: "타이어 교체",
+    cost: 480000,
+    description: "4륜 타이어 교체 작업 중",
+    status: "진행중",
+  },
+  {
+    id: "4",
+    vehicleId: "3",
+    date: "2025-01-10",
+    type: "에어컨 수리",
+    cost: 0,
+    description: "에어컨 냉매 보충 예정",
+    status: "예정",
+  },
+];
