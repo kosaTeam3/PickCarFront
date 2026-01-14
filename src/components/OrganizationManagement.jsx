@@ -9,6 +9,7 @@ import {extractContent} from "@/api/api";
 export function OrganizationManagement() {
     const [branches, setBranches] = useState(mockBranches);
     const employees = useMemo(() => mockEmployees, []);
+    const [totalBranches, setTotalBranches] = useState([]);
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -21,11 +22,11 @@ export function OrganizationManagement() {
             setError("");
 
             try {
-                // Spring Data Pageable 기본 파라미터: page, size, sort
                 const res = await getBranchList({page: 0, size: 20});
                 const content = extractContent(res);
 
                 const mapped = content.map(toBranchUiModel);
+                setTotalBranches(res.totalElements)
                 if (!ignore) setBranches(mapped);
             } catch (e) {
                 if (!ignore) setError(e?.message ?? String(e));
@@ -45,7 +46,7 @@ export function OrganizationManagement() {
 
         const branch = {
             ...newBranch,
-            id: Date.now(), // 임시 id (실제로는 백엔드 id 필요)
+            id: Date.now(),
             employeeCount: 0,
             vehicleCount: 0,
             managerName: getManagerName({managerName: "-"}),
@@ -87,7 +88,7 @@ export function OrganizationManagement() {
                         </div>
                         <span className="text-gray-600">총 지점 수</span>
                     </div>
-                    <div className="text-gray-900">{branches.length}개</div>
+                    <div className="text-gray-900">{totalBranches}개</div>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -97,7 +98,7 @@ export function OrganizationManagement() {
                         </div>
                         <span className="text-gray-600">총 직원 수</span>
                     </div>
-                    <div className="text-gray-900">{employees.length}명</div>
+                    <div className="text-gray-900">{branches.reduce((sum, b) => sum + b.employeeCount, 0)}명</div>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg border border-gray-200">
