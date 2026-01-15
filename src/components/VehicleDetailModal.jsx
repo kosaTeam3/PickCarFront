@@ -1,57 +1,129 @@
-import {useEffect, useMemo, useState} from "react";
-import {Calendar, Clock, DollarSign, FileText, Fuel, MapPin, Trash2, User, X,} from "lucide-react";
-import {AddMaintenanceModal} from "./AddMaintenanceModal";
-import {mockMaintenanceRecords} from "@/mocks/maintenance";
-import {mockRentalHistory} from "@/mocks/rentals";
+import { useEffect, useMemo, useState } from "react";
+import {
+    Calendar,
+    Clock,
+    DollarSign,
+    FileText,
+    Fuel,
+    MapPin,
+    Trash2,
+    User,
+    X,
+} from "lucide-react";
 
-export function VehicleDetailModal({
-                                       vehicle,
-                                       onClose,
-                                       onUpdate,
-                                       onDelete,
-                                   }) {
+import { AddMaintenanceModal } from "./AddMaintenanceModal";
+import { mockMaintenanceRecords } from "@/mocks/maintenance";
+import { mockRentalHistory } from "@/mocks/rentals";
+
+// ✅ 너가 만든 API/매핑 함수 가져와야 함 (경로는 네 프로젝트에 맞게 수정)
+import { getVehicleDetail, toVehicleDetailUiModel } from "@/api/vehicle";
+
+export function VehicleDetailModal({ vehicle, onClose, onUpdate, onDelete }) {
+    // vehicle이 없으면 렌더하지 않음 (상태 꼬이면 터지니까 방어)
+    if (!vehicle) return null;
+
     const [activeTab, setActiveTab] = useState("info");
     const [isAddMaintenanceOpen, setIsAddMaintenanceOpen] = useState(false);
 
+    // ✅ 실제 화면에 뿌릴 "상세+목록 합친 데이터"
+    const [detailVehicle, setDetailVehicle] = useState(vehicle);
+
+    // ✅ 상세조회 로딩/에러 (필요없으면 UI 표시 안 해도 됨)
+    const [loading, setLoading] = useState(false);
+
     // 간단 수정용 draft (상태/위치/주행거리만)
     const [draft, setDraft] = useState({
-        status: vehicle.status,
-        location: vehicle.location,
-        mileage: vehicle.mileage,
+        status: vehicle.status ?? "",
+        location: vehicle.location ?? "",
+        mileage: Number(vehicle.mileage ?? 0),
     });
 
+    // -----------------------------
+    // ✅ 숫자/통화 안전 포맷 (undefined.toLocaleString 방지)
+    // -----------------------------
+    const formatNumber = (v) => Number(v ?? 0).toLocaleString();
+    const formatCurrency = (v) => `₩${Number(v ?? 0).toLocaleString()}`;
+
+    // -----------------------------
+    // ✅ 모달 열릴 때 상세 조회 GET 추가
+    // -----------------------------
+    useEffect(() => {
+        let alive = true;
+
+        // 모달 열자마자 일단 목록 데이터로 표시 시작
+        setDetailVehicle(vehicle);
+
+        (async () => {
+            try {
+                setLoading(true);
+
+                const dto = await getVehicleDetail(vehicle.id);
+                // axios 기반이면 dto.data일 수 있음 (네 api 래퍼 구현에 따라 다름)
+                const data = dto?.data ?? dto;
+
+                const merged = toVehicleDetailUiModel(data, vehicle);
+
+                if (alive) {
+                    setDetailVehicle(merged);
+                }
+            } catch (e) {
+                // 실패해도 목록 데이터로 버티게 둠 (UI 안 죽게)
+                if (alive) {
+                    setDetailVehicle(vehicle);
+                }
+            } finally {
+                if (alive) setLoading(false);
+            }
+        })();
+
+        return () => {
+            alive = false;
+        };
+    }, [vehicle.id]);
+
+    // -----------------------------
+    // ✅ 상세 데이터 바뀌면 draft도 갱신
+    // -----------------------------
     useEffect(() => {
         setDraft({
-            status: vehicle.status,
-            location: vehicle.location,
-            mileage: vehicle.mileage,
+            status: detailVehicle.status ?? "",
+            location: detailVehicle.location ?? "",
+            mileage: Number(detailVehicle.mileage ?? 0),
         });
-    }, [vehicle.id, vehicle.location, vehicle.mileage, vehicle.status]);
+    }, [detailVehicle.id, detailVehicle.status, detailVehicle.location, detailVehicle.mileage]);
 
+    // -----------------------------
+    // ✅ 목업 데이터 (너 기존 코드 유지)
+    // -----------------------------
     const [maintenanceRecords, setMaintenanceRecords] = useState(
-        mockMaintenanceRecords.filter((m) => m.vehicleId === vehicle.id)
+        mockMaintenanceRecords.filter((m) => m.vehicleId === detailVehicle.id)
     );
 
     useEffect(() => {
-        setMaintenanceRecords(mockMaintenanceRecords.filter((m) => m.vehicleId === vehicle.id));
-    }, [vehicle.id]);
+        setMaintenanceRecords(
+            mockMaintenanceRecords.filter((m) => m.vehicleId === detailVehicle.id)
+        );
+    }, [detailVehicle.id]);
 
     const rentalHistory = useMemo(
-        () => mockRentalHistory.filter((r) => r.vehicleId === vehicle.id),
-        [vehicle.id]
+        () => mockRentalHistory.filter((r) => r.vehicleId === detailVehicle.id),
+        [detailVehicle.id]
     );
 
     const handleAddMaintenance = (maintenance) => {
         const newMaintenance = {
             ...maintenance,
             id: Date.now().toString(),
-            vehicleId: vehicle.id,
+            vehicleId: detailVehicle.id,
         };
 
         setMaintenanceRecords((prev) => [newMaintenance, ...prev]);
         setIsAddMaintenanceOpen(false);
     };
 
+    // -----------------------------
+    // ✅ 상태 색상 (기존 유지)
+    // -----------------------------
     const getMaintenanceStatusColor = (status) => {
         switch (status) {
             case "완료":
@@ -60,6 +132,8 @@ export function VehicleDetailModal({
                 return "bg-blue-100 text-blue-700";
             case "예정":
                 return "bg-yellow-100 text-yellow-700";
+            default:
+                return "bg-gray-100 text-gray-700";
         }
     };
 
@@ -71,42 +145,70 @@ export function VehicleDetailModal({
                 return "bg-blue-100 text-blue-700";
             case "취소":
                 return "bg-red-100 text-red-700";
+            default:
+                return "bg-gray-100 text-gray-700";
         }
     };
 
+    // -----------------------------
+    // ✅ 변경 감지 / 저장 / 삭제
+    // -----------------------------
     const isDirty =
-        draft.status !== vehicle.status ||
-        draft.location !== vehicle.location ||
-        draft.mileage !== vehicle.mileage;
+        draft.status !== (detailVehicle.status ?? "") ||
+        draft.location !== (detailVehicle.location ?? "") ||
+        Number(draft.mileage ?? 0) !== Number(detailVehicle.mileage ?? 0);
 
     const saveChanges = () => {
         if (!isDirty) return;
-        onUpdate({...vehicle, ...draft});
+
+        const merged = {
+            ...detailVehicle,
+            ...draft,
+            mileage: Number(draft.mileage ?? 0),
+        };
+
+        // 화면 즉시 반영 + 부모 업데이트 콜백
+        setDetailVehicle(merged);
+        onUpdate?.(merged);
     };
 
     const handleDelete = () => {
-        if (!confirm("이 차량을 삭제하시겠습니까?")) return;
-        onDelete(vehicle.id);
-        onClose();
+        if (!window.confirm("이 차량을 삭제하시겠습니까?")) return;
+        onDelete?.(detailVehicle.id);
+        onClose?.();
     };
+
+    // -----------------------------
+    // ✅ 렌더링
+    // -----------------------------
+    const imgSrc =
+        detailVehicle.imageUrl ||
+        detailVehicle.carImage ||
+        detailVehicle.image ||
+        "https://placehold.co/160x120?text=No+Image";
 
     return (
         <>
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
                     {/* 헤더 */}
-                    <div
-                        className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                    <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <img
-                                src={vehicle.imageUrl}
-                                alt={vehicle.model}
+                                src={imgSrc}
+                                alt={detailVehicle.model ?? "vehicle"}
                                 className="w-20 h-15 object-cover rounded"
                             />
                             <div>
-                                <h2 className="text-gray-900">{vehicle.model}</h2>
+                                <h2 className="text-gray-900">
+                                    {detailVehicle.model ?? "-"}
+                                    {loading && (
+                                        <span className="ml-2 text-sm text-gray-400">(상세 로딩중)</span>
+                                    )}
+                                </h2>
                                 <p className="text-gray-500">
-                                    {vehicle.vehicleCode} | {vehicle.licensePlate}
+                                    {detailVehicle.vehicleCode ?? "-"} |{" "}
+                                    {detailVehicle.licensePlate ?? detailVehicle.carNumber ?? "-"}
                                 </p>
                             </div>
                         </div>
@@ -117,7 +219,7 @@ export function VehicleDetailModal({
                                 className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
                                 type="button"
                             >
-                                <Trash2 className="w-4 h-4"/>
+                                <Trash2 className="w-4 h-4" />
                                 <span>삭제</span>
                             </button>
                             <button
@@ -125,7 +227,7 @@ export function VehicleDetailModal({
                                 className="text-gray-400 hover:text-gray-600 transition-colors"
                                 type="button"
                             >
-                                <X className="w-6 h-6"/>
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
                     </div>
@@ -210,16 +312,21 @@ export function VehicleDetailModal({
                                                 <option value="정비중">정비중</option>
                                             </select>
                                         </div>
+
                                         <div>
                                             <label className="block text-gray-700 mb-2">위치</label>
                                             <input
                                                 value={draft.location}
                                                 onChange={(e) =>
-                                                    setDraft((prev) => ({...prev, location: e.target.value}))
+                                                    setDraft((prev) => ({
+                                                        ...prev,
+                                                        location: e.target.value,
+                                                    }))
                                                 }
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
+
                                         <div>
                                             <label className="block text-gray-700 mb-2">주행거리(km)</label>
                                             <input
@@ -242,43 +349,45 @@ export function VehicleDetailModal({
                                     <div className="space-y-4">
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <FileText className="w-4 h-4"/>
+                                                <FileText className="w-4 h-4" />
                                                 <span>차량 코드</span>
                                             </div>
-                                            <div className="text-gray-900">{vehicle.vehicleCode}</div>
+                                            <div className="text-gray-900">{detailVehicle.vehicleCode ?? "-"}</div>
                                         </div>
 
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <Calendar className="w-4 h-4"/>
+                                                <Calendar className="w-4 h-4" />
                                                 <span>제작년도</span>
                                             </div>
-                                            <div className="text-gray-900">{vehicle.year}년</div>
+                                            <div className="text-gray-900">
+                                                {detailVehicle.year ? `${detailVehicle.year}년` : "-"}
+                                            </div>
                                         </div>
 
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <Fuel className="w-4 h-4"/>
+                                                <Fuel className="w-4 h-4" />
                                                 <span>연료 타입</span>
                                             </div>
-                                            <div className="text-gray-900">{vehicle.fuelType}</div>
+                                            <div className="text-gray-900">{detailVehicle.fuelType ?? "-"}</div>
                                         </div>
 
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <MapPin className="w-4 h-4"/>
+                                                <MapPin className="w-4 h-4" />
                                                 <span>위치</span>
                                             </div>
-                                            <div className="text-gray-900">{vehicle.location}</div>
+                                            <div className="text-gray-900">{detailVehicle.location ?? "-"}</div>
                                         </div>
 
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <Clock className="w-4 h-4"/>
+                                                <Clock className="w-4 h-4" />
                                                 <span>주행거리</span>
                                             </div>
                                             <div className="text-gray-900">
-                                                {vehicle.mileage} km
+                                                {formatNumber(detailVehicle.mileage)} km
                                             </div>
                                         </div>
                                     </div>
@@ -286,46 +395,48 @@ export function VehicleDetailModal({
                                     <div className="space-y-4">
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <Calendar className="w-4 h-4"/>
+                                                <Calendar className="w-4 h-4" />
                                                 <span>시스템 등록일</span>
                                             </div>
-                                            <div className="text-gray-900">{vehicle.registeredDate}</div>
+                                            <div className="text-gray-900">{detailVehicle.registeredDate ?? "-"}</div>
                                         </div>
 
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <Calendar className="w-4 h-4"/>
+                                                <Calendar className="w-4 h-4" />
                                                 <span>검사일</span>
                                             </div>
-                                            <div className="text-gray-900">{vehicle.inspectionDate}</div>
+                                            <div className="text-gray-900">{detailVehicle.inspectionDate ?? "-"}</div>
                                         </div>
 
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <FileText className="w-4 h-4"/>
+                                                <FileText className="w-4 h-4" />
                                                 <span>보험 정보</span>
                                             </div>
-                                            <div className="text-gray-900">{vehicle.insurance}</div>
+                                            <div className="text-gray-900">{detailVehicle.insurance ?? "-"}</div>
                                             <div className="text-gray-500">
-                                                보험 등급: {vehicle.insuranceType}
+                                                보험 등급: {detailVehicle.insuranceType ?? "-"}
                                             </div>
                                         </div>
 
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <User className="w-4 h-4"/>
+                                                <User className="w-4 h-4" />
                                                 <span>연령 제한</span>
                                             </div>
-                                            <div className="text-gray-900">{vehicle.minAge}세 이상</div>
+                                            <div className="text-gray-900">
+                                                {detailVehicle.minAge ? `${detailVehicle.minAge}세 이상` : "-"}
+                                            </div>
                                         </div>
 
                                         <div>
                                             <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                                <DollarSign className="w-4 h-4"/>
+                                                <DollarSign className="w-4 h-4" />
                                                 <span>구입가</span>
                                             </div>
                                             <div className="text-gray-900">
-                                                ₩{vehicle.purchasePrice.toLocaleString()}
+                                                {formatCurrency(detailVehicle.purchasePrice)}
                                             </div>
                                         </div>
                                     </div>
@@ -368,9 +479,9 @@ export function VehicleDetailModal({
                           </span>
                                                 </div>
                                                 <p className="text-gray-600 mb-2">{record.description}</p>
-                                                {record.cost > 0 && (
+                                                {Number(record.cost ?? 0) > 0 && (
                                                     <div className="text-gray-900">
-                                                        비용: ₩{record.cost.toLocaleString()}
+                                                        비용: {formatCurrency(record.cost)}
                                                     </div>
                                                 )}
                                             </div>
@@ -388,6 +499,7 @@ export function VehicleDetailModal({
                         {activeTab === "rental" && (
                             <div>
                                 <h3 className="text-gray-900 mb-4">대여 기록</h3>
+
                                 {rentalHistory.length > 0 ? (
                                     <div className="space-y-4">
                                         {rentalHistory.map((rental) => (
@@ -398,13 +510,13 @@ export function VehicleDetailModal({
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <User className="w-4 h-4 text-gray-500"/>
+                                                            <User className="w-4 h-4 text-gray-500" />
                                                             <span className="text-gray-900">
-                                {rental.memberName}
+                                {rental.memberName ?? "-"}
                               </span>
                                                         </div>
                                                         <div className="text-gray-500 mt-1">
-                                                            {rental.startDate} ~ {rental.endDate}
+                                                            {rental.startDate ?? "-"} ~ {rental.endDate ?? "-"}
                                                         </div>
                                                     </div>
                                                     <span
@@ -412,11 +524,11 @@ export function VehicleDetailModal({
                                                             rental.status
                                                         )}`}
                                                     >
-                            {rental.status}
+                            {rental.status ?? "-"}
                           </span>
                                                 </div>
                                                 <div className="text-gray-900">
-                                                    대여 비용: ₩{rental.totalCost.toLocaleString()}
+                                                    대여 비용: {formatCurrency(rental.totalCost)}
                                                 </div>
                                             </div>
                                         ))}
@@ -438,8 +550,8 @@ export function VehicleDetailModal({
                 onClose={() => setIsAddMaintenanceOpen(false)}
                 onAdd={handleAddMaintenance}
                 vehicleInfo={{
-                    model: vehicle.model,
-                    licensePlate: vehicle.licensePlate,
+                    model: detailVehicle.model ?? "-",
+                    licensePlate: detailVehicle.licensePlate ?? detailVehicle.carNumber ?? "-",
                 }}
             />
         </>
