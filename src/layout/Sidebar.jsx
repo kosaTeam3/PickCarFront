@@ -1,13 +1,42 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { BarChart3, Building2, Car, ChevronDown, Users } from "lucide-react";
-export function Sidebar({ activeMenu, onMenuChange }) {
+
+const subLinkClass = ({ isActive }) =>
+  `w-full rounded-lg px-3 py-2 text-left transition-colors ${
+    isActive ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-100"
+  }`;
+
+const mainLinkClass = ({ isActive }) =>
+  `flex w-full items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
+    isActive ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-100"
+  }`;
+
+export function Sidebar() {
+  const location = useLocation();
+
   const [vehicleMenuOpen, setVehicleMenuOpen] = useState(true);
   const [organizationMenuOpen, setOrganizationMenuOpen] = useState(false);
+
+  // 현재 URL 기준으로 메뉴 자동 펼치기
+  useEffect(() => {
+    const path = location.pathname;
+
+    if (path.startsWith("/manager/vehicles") || path.startsWith("/manager/maintenance")) {
+      setVehicleMenuOpen(true);
+    }
+
+    if (path.startsWith("/manager/branches") || path.startsWith("/manager/employees")) {
+      setOrganizationMenuOpen(true);
+    }
+  }, [location.pathname]);
 
   return (
     <aside className="flex w-64 flex-col border-r border-gray-200 bg-white">
       <div className="border-b border-gray-200 p-6">
-        <h1 className="text-blue-600">렌터카 관리 시스템</h1>
+        <NavLink to="/manager" className="text-blue-600">
+          렌터카 관리 시스템
+        </NavLink>
       </div>
 
       <nav className="flex-1 p-4">
@@ -33,30 +62,14 @@ export function Sidebar({ activeMenu, onMenuChange }) {
             {vehicleMenuOpen && (
               <ul className="ml-8 mt-1 space-y-1">
                 <li>
-                  <button
-                    onClick={() => onMenuChange("vehicle-list")}
-                    className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${
-                      activeMenu === "vehicle-list"
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                    type="button"
-                  >
+                  <NavLink to="/manager/vehicles" className={subLinkClass}>
                     차량리스트
-                  </button>
+                  </NavLink>
                 </li>
                 <li>
-                  <button
-                    onClick={() => onMenuChange("maintenance")}
-                    className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${
-                      activeMenu === "maintenance"
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                    type="button"
-                  >
+                  <NavLink to="/manager/maintenance" className={subLinkClass}>
                     정비관리
-                  </button>
+                  </NavLink>
                 </li>
               </ul>
             )}
@@ -83,30 +96,14 @@ export function Sidebar({ activeMenu, onMenuChange }) {
             {organizationMenuOpen && (
               <ul className="ml-8 mt-1 space-y-1">
                 <li>
-                  <button
-                    onClick={() => onMenuChange("organization")}
-                    className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${
-                      activeMenu === "organization"
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                    type="button"
-                  >
+                  <NavLink to="/manager/branches" className={subLinkClass}>
                     지점관리
-                  </button>
+                  </NavLink>
                 </li>
                 <li>
-                  <button
-                    onClick={() => onMenuChange("employees")}
-                    className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${
-                      activeMenu === "employees"
-                        ? "bg-blue-50 text-blue-600"
-                        : "text-gray-600 hover:bg-gray-100"
-                    }`}
-                    type="button"
-                  >
+                  <NavLink to="/manager/employees" className={subLinkClass}>
                     직원관리
-                  </button>
+                  </NavLink>
                 </li>
               </ul>
             )}
@@ -114,34 +111,18 @@ export function Sidebar({ activeMenu, onMenuChange }) {
 
           {/* 회원관리 */}
           <li>
-            <button
-              onClick={() => onMenuChange("members")}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
-                activeMenu === "members"
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-              type="button"
-            >
+            <NavLink to="/manager/members" className={mainLinkClass}>
               <Users className="h-5 w-5" />
               <span>회원관리</span>
-            </button>
+            </NavLink>
           </li>
 
           {/* 통계 */}
           <li>
-            <button
-              onClick={() => onMenuChange("statistics")}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 transition-colors ${
-                activeMenu === "statistics"
-                  ? "bg-blue-50 text-blue-600"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-              type="button"
-            >
+            <NavLink to="/manager/statistics" className={mainLinkClass}>
               <BarChart3 className="h-5 w-5" />
               <span>통계</span>
-            </button>
+            </NavLink>
           </li>
         </ul>
       </nav>

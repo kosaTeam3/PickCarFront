@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 
-import { Sidebar } from "@/layout/Sidebar";
-import { NotificationPanel } from "@/layout/NotificationPanel";
+import { ManagerLayout } from "@/layout/ManagerLayout";
+import { ClientHome } from "@/pages/ClientHome";
+import { NotFound } from "@/pages/NotFound";
 
 import { VehicleList } from "@/features/vehicle";
 import { MaintenanceManagement } from "@/features/maintenance";
@@ -11,32 +12,40 @@ import { MemberManagement } from "@/features/member";
 import { Statistics } from "@/features/statistics";
 
 export default function App() {
-  const [activeMenu, setActiveMenu] = useState("vehicle-list");
-
-  const renderContent = () => {
-    switch (activeMenu) {
-      case "vehicle-list":
-        return <VehicleList />;
-      case "maintenance":
-        return <MaintenanceManagement />;
-      case "organization":
-        return <OrganizationManagement />;
-      case "employees":
-        return <EmployeeManagement />;
-      case "members":
-        return <MemberManagement />;
-      case "statistics":
-        return <Statistics />;
-      default:
-        return <VehicleList />;
-    }
-  };
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar activeMenu={activeMenu} onMenuChange={setActiveMenu} />
-      <main className="flex-1 overflow-auto">{renderContent()}</main>
-      <NotificationPanel />
-    </div>
+    <Routes>
+      {/* Client */}
+      <Route path="/" element={<ClientHome />} />
+
+      {/* Manager */}
+      <Route path="/manager" element={<ManagerLayout />}>
+        <Route index element={<Navigate to="vehicles" replace />} />
+
+        <Route path="vehicles" element={<VehicleList />}>
+          {/* 모달 라우트(경로 매칭용) */}
+          <Route path="new" element={<></>} />
+          <Route path=":carId" element={<></>} />
+        </Route>
+
+        <Route path="maintenance" element={<MaintenanceManagement />} />
+
+        <Route path="branches" element={<OrganizationManagement />}>
+          {/* 모달 라우트(경로 매칭용) */}
+          <Route path="new" element={<></>} />
+          <Route path=":branchId" element={<></>} />
+        </Route>
+
+        <Route path="employees" element={<EmployeeManagement />} />
+
+        <Route path="members" element={<MemberManagement />}>
+          {/* 모달 라우트(경로 매칭용) */}
+          <Route path=":memberId" element={<></>} />
+        </Route>
+
+        <Route path="statistics" element={<Statistics />} />
+      </Route>
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }

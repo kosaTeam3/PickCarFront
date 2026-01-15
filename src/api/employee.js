@@ -19,3 +19,7 @@ export function updateEmployee(employeeId, payload) {
 export function deleteEmployee(employeeId) {
   return api(`/api/manager/employees/${employeeId}`, { method: "DELETE" });
 }
+
+export function toEmployeeUiModel(dto){
+    return null
+}
