@@ -1,8 +1,9 @@
 import {api} from "./client";
 
-export function getMaintenanceList(vehicleId, params) {
-    // 예: /api/manager/vehicles/{id}/maintenance
-    return api(`/api/manager/vehicles/${vehicleId}/maintenance`, {params});
+// ✅ 정비 전체 목록 조회 (Page 응답)
+// GET /api/manager/maint?page=0&size=20&sort=id,DESC&branchId=1&status=ONGOING&keyword=오일
+export function getMaintenanceList(params) {
+    return api("/api/manager/maint", { params });
 }
 
 export function getMaintenanceDetail(maintenanceId) {
