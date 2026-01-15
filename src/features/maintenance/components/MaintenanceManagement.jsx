@@ -1,9 +1,10 @@
 import {useMemo, useState} from "react";
 import {AlertCircle, Calendar, Filter, Plus, Wrench} from "lucide-react";
 import {AddMaintenanceModal} from "./AddMaintenanceModal";
-import { VehicleSelectionModal } from "@/features/vehicle";
+import {VehicleSelectionModal} from "@/features/vehicle";
 import {mockMaintenanceRecords} from "@/mocks/maintenance";
 import {mockVehicleLookup, mockVehicles} from "@/mocks/vehicles";
+import {MaintenanceDetailModal} from "@/features/maintenance/components/MaintenanceDetailModal";
 
 export function MaintenanceManagement() {
     const [records, setRecords] = useState(mockMaintenanceRecords);
@@ -11,6 +12,7 @@ export function MaintenanceManagement() {
     const [isAddMaintenanceOpen, setIsAddMaintenanceOpen] = useState(false);
     const [selectedVehicle, setSelectedVehicle] = useState(null);
     const [showFilters, setShowFilters] = useState(false);
+    const [selectedMaintenance, setSelectedMaintenance] = useState(null);
     const [filters, setFilters] = useState({
         vehicleModel: "",
         vehicleCode: "",
@@ -215,7 +217,15 @@ export function MaintenanceManagement() {
                         {filteredRecords.map((record) => {
                             const vehicle = mockVehicleLookup[record.vehicleId];
                             return (
-                                <tr key={record.id} className="hover:bg-gray-50 transition-colors">
+                                <tr key={record.id}
+                                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                    onClick={() =>
+                                        setSelectedMaintenance({
+                                            maintenanceId: record.maintenanceId ?? record.id,
+                                            vehicleId: record.vehicleId,
+                                        })
+                                    }
+                                >
                                     <td className="px-6 py-4 text-gray-600">
                                         {vehicle?.vehicleCode || "-"}
                                     </td>
@@ -270,6 +280,15 @@ export function MaintenanceManagement() {
                 onAdd={handleAddMaintenance}
                 vehicleInfo={selectedVehicle || undefined}
             />
+
+            {/* 정비 상세 모달 */}
+            {selectedMaintenance && (
+                <MaintenanceDetailModal
+                    maintenanceId={selectedMaintenance.maintenanceId}
+                    vehicle={mockVehicleLookup[selectedMaintenance.vehicleId]}
+                    onClose={() => setSelectedMaintenance(null)}
+                />
+            )}
         </div>
     );
 }

@@ -5,6 +5,10 @@ export function getMaintenanceList(vehicleId, params) {
     return api(`/api/manager/vehicles/${vehicleId}/maintenance`, {params});
 }
 
+export function getMaintenanceDetail(maintenanceId) {
+    return api(`/api/manager/maint/${maintenanceId}`);
+}
+
 export function createMaintenance(vehicleId, payload) {
     return api(`/api/manager/vehicles/${vehicleId}/maintenance`, {
         method: "POST",
