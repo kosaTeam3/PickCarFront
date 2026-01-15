@@ -12,9 +12,20 @@ export function VehicleList() {
   const navigate = useNavigate();
   const { carId } = useParams();
 
+  const PAGE_SIZE = 20;
+
   const isAddModalOpen = Boolean(useMatch("/manager/vehicles/new"));
 
   const [vehicles, setVehicles] = useState(mockVehicles.map(toVehicleUiModel));
+  const [page, setPage] = useState(0);
+  const [pageInfo, setPageInfo] = useState({
+    number: 0,
+    size: PAGE_SIZE,
+    totalPages: 1,
+    totalElements: 0,
+    first: true,
+    last: true,
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
@@ -30,11 +41,23 @@ export function VehicleList() {
       setError("");
 
       try {
-        const res = await getVehicleList({ page: 0, size: 50 });
-        const content = extractContent(res);
+        const res = await getVehicleList({ page, size: PAGE_SIZE });
+
+        const data = res?.data ?? res;
+        const content = extractContent(data);
 
         const mapped = content.map(toVehicleUiModel);
-        if (!ignore) setVehicles(mapped);
+        if (!ignore) {
+          setVehicles(mapped);
+          setPageInfo({
+            number: data?.number ?? page,
+            size: data?.size ?? PAGE_SIZE,
+            totalPages: data?.totalPages ?? 1,
+            totalElements: data?.totalElements ?? mapped.length,
+            first: data?.first ?? page === 0,
+            last: data?.last ?? false,
+          });
+        }
       } catch (e) {
         if (!ignore) setError(e?.message ?? String(e));
       } finally {
@@ -45,7 +68,17 @@ export function VehicleList() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [page]);
+
+  const totalPages = pageInfo.totalPages ?? 1;
+  const totalElements = pageInfo.totalElements ?? vehicles.length;
+  const currentPage = pageInfo.number ?? page;
+
+  const canPrev = currentPage > 0;
+  const canNext = currentPage < totalPages - 1;
+
+  const from = totalElements === 0 ? 0 : currentPage * PAGE_SIZE + 1;
+  const to = Math.min((currentPage + 1) * PAGE_SIZE, totalElements);
 
   const filteredVehicles = useMemo(() => {
     return vehicles.filter((vehicle) => {
@@ -198,7 +231,7 @@ export function VehicleList() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-gray-500 mb-1">전체 차량</div>
-          <div className="text-gray-900">{vehicles.length}대</div>
+          <div className="text-gray-900">{totalElements.toLocaleString()}대</div>
         </div>
         <div className="bg-white p-4 rounded-lg border border-gray-200">
           <div className="text-gray-500 mb-1">대기</div>
@@ -249,8 +282,17 @@ export function VehicleList() {
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 rounded-full">
-                        <Car className="w-5 h-5 text-blue-600" />
+                      <div className="w-8 h-8 rounded-lg overflow-hidden bg-blue-100 flex items-center justify-center">
+                        {vehicle.carImage ? (
+                          <img
+                            src={vehicle.carImage}
+                            alt={vehicle.model}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Car className="w-5 h-5 text-blue-600" />
+                        )}
                       </div>
                       <div>
                         <div className="text-gray-900">{vehicle.model}</div>
@@ -308,6 +350,43 @@ export function VehicleList() {
         {filteredVehicles.length === 0 && (
           <div className="text-center py-12 text-gray-500">차량이 없습니다</div>
         )}
+
+        {/* ✅ 페이지네이션 */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-white">
+          <div className="text-sm text-gray-600">
+            {totalElements.toLocaleString()}대 중
+            <span className="ml-1">
+              {totalElements === 0
+                ? "0"
+                : `${from}-${to}`}
+            </span>
+            <span className="ml-1">표시</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={!canPrev}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              이전
+            </button>
+
+            <div className="text-sm text-gray-700 min-w-20 text-center">
+              {currentPage + 1} / {Math.max(totalPages, 1)}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={!canNext}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              다음
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ✅ 라우트 기반: 차량 등록 모달 */}
