@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Calendar, IdCard, Phone, Plus, User, X} from "lucide-react";
-import {AddEmployeeModal} from "./AddEmployeeModal";
+import { AddEmployeeModal } from "@/features/employee";
 
 export function BranchDetailModal({
                                       branch,

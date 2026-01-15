@@ -26,7 +26,7 @@ export function OrganizationManagement() {
                 const content = extractContent(res);
 
                 const mapped = content.map(toBranchUiModel);
-                if (!ignore) setTotalBranches(res.totalElements)
+                if (!ignore) setTotalBranches(res?.totalElements ?? res?.data?.totalElements ?? mapped.length)
                 if (!ignore) setBranches(mapped);
             } catch (e) {
                 if (!ignore) setError(e?.message ?? String(e));

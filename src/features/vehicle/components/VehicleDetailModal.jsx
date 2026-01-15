@@ -11,7 +11,7 @@ import {
     X,
 } from "lucide-react";
 
-import { AddMaintenanceModal } from "./AddMaintenanceModal";
+import { AddMaintenanceModal } from "@/features/maintenance";
 import { mockMaintenanceRecords } from "@/mocks/maintenance";
 import { mockRentalHistory } from "@/mocks/rentals";
 
@@ -53,11 +53,19 @@ export function VehicleDetailModal({ vehicle, onClose, onUpdate, onDelete }) {
         // 모달 열자마자 일단 목록 데이터로 표시 시작
         setDetailVehicle(vehicle);
 
+        // 화면에서만 추가된 차량(서버 carId 없음)이면 상세 GET 스킵
+        if (!vehicle?.carId) {
+            setLoading(false);
+            return () => {
+                alive = false;
+            };
+        }
+
         (async () => {
             try {
                 setLoading(true);
 
-                const dto = await getVehicleDetail(vehicle.id);
+                const dto = await getVehicleDetail(vehicle.carId);
                 // axios 기반이면 dto.data일 수 있음 (네 api 래퍼 구현에 따라 다름)
                 const data = dto?.data ?? dto;
 
@@ -79,7 +87,7 @@ export function VehicleDetailModal({ vehicle, onClose, onUpdate, onDelete }) {
         return () => {
             alive = false;
         };
-    }, [vehicle.id]);
+    }, [vehicle?.id, vehicle?.carId]);
 
     // -----------------------------
     // ✅ 상세 데이터 바뀌면 draft도 갱신

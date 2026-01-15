@@ -1,7 +1,7 @@
 import {useMemo, useState} from "react";
 import {AlertCircle, Calendar, Filter, Plus, Wrench} from "lucide-react";
 import {AddMaintenanceModal} from "./AddMaintenanceModal";
-import {VehicleSelectionModal} from "./VehicleSelectionModal";
+import { VehicleSelectionModal } from "@/features/vehicle";
 import {mockMaintenanceRecords} from "@/mocks/maintenance";
 import {mockVehicleLookup, mockVehicles} from "@/mocks/vehicles";
 

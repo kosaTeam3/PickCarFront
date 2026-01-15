@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { Sidebar } from "./components/Sidebar";
-import { VehicleList } from "./components/VehicleList";
-import { MaintenanceManagement } from "./components/MaintenanceManagement";
-import { OrganizationManagement } from "./components/OrganizationManagement";
-import { EmployeeManagement } from "./components/EmployeeManagement";
-import { MemberManagement } from "./components/MemberManagement";
-import { Statistics } from "./components/Statistics";
-import { NotificationPanel } from "./components/NotificationPanel";
+
+import { Sidebar } from "@/layout/Sidebar";
+import { NotificationPanel } from "@/layout/NotificationPanel";
+
+import { VehicleList } from "@/features/vehicle";
+import { MaintenanceManagement } from "@/features/maintenance";
+import { OrganizationManagement } from "@/features/organization";
+import { EmployeeManagement } from "@/features/employee";
+import { MemberManagement } from "@/features/member";
+import { Statistics } from "@/features/statistics";
+
 export default function App() {
   const [activeMenu, setActiveMenu] = useState("vehicle-list");
 

@@ -1,6 +1,5 @@
 import {useState} from 'react';
 import {X, User, Mail, Phone, Calendar, CreditCard, Car, AlertTriangle} from 'lucide-react';
-import {Member} from './MemberManagement';
 
 const mockRentalHistory = {
     '1': [
