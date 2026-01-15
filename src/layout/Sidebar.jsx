@@ -60,7 +60,7 @@ export function Sidebar() {
             </button>
 
             {vehicleMenuOpen && (
-              <ul className="ml-8 mt-1 space-y-1">
+              <ul className="ml-8 mt-1 space-y-3">
                 <li>
                   <NavLink to="/manager/vehicles" className={subLinkClass}>
                     차량리스트
@@ -94,7 +94,7 @@ export function Sidebar() {
             </button>
 
             {organizationMenuOpen && (
-              <ul className="ml-8 mt-1 space-y-1">
+              <ul className="ml-8 mt-1 space-y-3">
                 <li>
                   <NavLink to="/manager/branches" className={subLinkClass}>
                     지점관리

@@ -140,11 +140,6 @@ export function MaintenanceManagement() {
         setPage(0);
     };
 
-    // (이거 지금은 mockVehicles라 그냥 남겨둠)
-    const vehicleModels = useMemo(() => {
-        return Array.from(new Set(mockVehicles.map((v) => v.model)));
-    }, []);
-
     return (
         <div className="p-8">
             <div className="flex justify-between items-start mb-6">
