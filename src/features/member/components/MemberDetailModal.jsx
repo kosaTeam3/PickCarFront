@@ -1,369 +1,120 @@
-import {useState} from 'react';
-import {X, User, Mail, Phone, Calendar, CreditCard, Car, AlertTriangle} from 'lucide-react';
+import { useState } from 'react';
+import { X, User, ShieldAlert, Edit3, AlertCircle, Ban } from 'lucide-react';
+import { clientService } from "@/api/client"; 
 
-const mockRentalHistory = {
-    '1': [
-        {
-            id: '1',
-            vehicleModel: '현대 아반떼',
-            licensePlate: '123가4567',
-            startDate: '2024-12-20',
-            endDate: '2024-12-25',
-            cost: 250000,
-            status: '완료',
-        },
-        {
-            id: '2',
-            vehicleModel: '기아 스포티지',
-            licensePlate: '456나7890',
-            startDate: '2024-11-10',
-            endDate: '2024-11-15',
-            cost: 350000,
-            status: '완료',
-        },
-        {
-            id: '3',
-            vehicleModel: '제네시스 G80',
-            licensePlate: '321라5678',
-            startDate: '2024-10-05',
-            endDate: '2024-10-10',
-            cost: 800000,
-            status: '완료',
-        },
-    ],
-    '2': [
-        {
-            id: '4',
-            vehicleModel: '현대 아반떼',
-            licensePlate: '123가4567',
-            startDate: '2024-12-01',
-            endDate: '2024-12-05',
-            cost: 200000,
-            status: '완료',
-        },
-        {
-            id: '5',
-            vehicleModel: '기아 모닝',
-            licensePlate: '789다1234',
-            startDate: '2024-11-15',
-            endDate: '2024-11-18',
-            cost: 120000,
-            status: '완료',
-        },
-    ],
-    '3': [
-        {
-            id: '6',
-            vehicleModel: '기아 모닝',
-            licensePlate: '789다1234',
-            startDate: '2024-12-10',
-            endDate: '2024-12-15',
-            cost: 150000,
-            status: '완료',
-        },
-    ],
-    '4': [
-        {
-            id: '7',
-            vehicleModel: '현대 아반떼',
-            licensePlate: '123가4567',
-            startDate: '2023-08-20',
-            endDate: '2023-08-25',
-            cost: 220000,
-            status: '완료',
-        },
-    ],
-};
+export function MemberDetailModal({ member, onClose, onUpdate }) {
+  const [isBlacking, setIsBlacking] = useState(false); 
+  const [blacklistInfo, setBlacklistInfo] = useState(''); 
+  const isBlacked = member.blacked;
 
-const mockAccidentHistory = {
-    '1': [
-        {
-            id: '1',
-            date: '2024-11-12',
-            vehicleModel: '기아 스포티지',
-            licensePlate: '456나7890',
-            location: '서울 강남구 테헤란로',
-            description: '주차 중 측면 접촉사고',
-            damageAmount: 850000,
-            status: '처리완료',
-        },
-    ],
-    '2': [],
-    '3': [],
-    '4': [
-        {
-            id: '2',
-            date: '2023-09-01',
-            vehicleModel: '현대 아반떼',
-            licensePlate: '123가4567',
-            location: '경기 성남시',
-            description: '후방 추돌사고',
-            damageAmount: 1200000,
-            status: '처리완료',
-        },
-    ],
-};
+  const handleAddBlacklist = async () => {
+    if (!blacklistInfo.trim()) return alert("차단 사유를 적어주세요.");
+    try {
+      await clientService.addBlacklist(member.clientId, { blacklistInfo });
+      alert("이 회원의 서비스 이용이 차단되었습니다.");
+      onClose(); 
+    } catch (error) {
+      alert("실패: 권한이 없습니다.");
+    }
+  };
 
-export function MemberDetailModal({member, onClose}) {
-    const [activeTab, setActiveTab] = useState('info');
-
-    const rentalHistory = mockRentalHistory[member.id] || [];
-    const accidentHistory = mockAccidentHistory[member.id] || [];
-
-    const getRentalStatusColor = (status) => {
-        switch (status) {
-            case '완료':
-                return 'bg-green-100 text-green-700';
-            case '진행중':
-                return 'bg-blue-100 text-blue-700';
-            case '취소':
-                return 'bg-red-100 text-red-700';
-        }
-    };
-
-    const getAccidentStatusColor = (status) => {
-        switch (status) {
-            case '처리완료':
-                return 'bg-green-100 text-green-700';
-            case '처리중':
-                return 'bg-yellow-100 text-yellow-700';
-        }
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                {/* 헤더 */}
-                <div
-                    className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 rounded-full">
-                            <User className="w-8 h-8 text-blue-600"/>
-                        </div>
-                        <div>
-                            <h2 className="text-gray-900">{member.name}</h2>
-                            <p className="text-gray-500">{member.membershipType} 회원</p>
-                        </div>
-                    </div>
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                        <X className="w-6 h-6"/>
-                    </button>
-                </div>
-
-                {/* 탭 */}
-                <div className="border-b border-gray-200">
-                    <div className="flex">
-                        <button
-                            onClick={() => setActiveTab('info')}
-                            className={`px-6 py-3 transition-colors ${
-                                activeTab === 'info'
-                                    ? 'border-b-2 border-blue-600 text-blue-600'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            기본 정보
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('rental')}
-                            className={`px-6 py-3 transition-colors ${
-                                activeTab === 'rental'
-                                    ? 'border-b-2 border-blue-600 text-blue-600'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            대여 이력 ({rentalHistory.length})
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('accident')}
-                            className={`px-6 py-3 transition-colors ${
-                                activeTab === 'accident'
-                                    ? 'border-b-2 border-blue-600 text-blue-600'
-                                    : 'text-gray-600 hover:text-gray-900'
-                            }`}
-                        >
-                            사고 이력 ({accidentHistory.length})
-                        </button>
-                    </div>
-                </div>
-
-                {/* 컨텐츠 */}
-                <div className="p-6">
-                    {/* 기본 정보 탭 */}
-                    {activeTab === 'info' && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                        <User className="w-4 h-4"/>
-                                        <span>이름</span>
-                                    </div>
-                                    <div className="text-gray-900">{member.name}</div>
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                        <Mail className="w-4 h-4"/>
-                                        <span>이메일</span>
-                                    </div>
-                                    <div className="text-gray-900">{member.email}</div>
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                        <Phone className="w-4 h-4"/>
-                                        <span>전화번호</span>
-                                    </div>
-                                    <div className="text-gray-900">{member.phone}</div>
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                        <Calendar className="w-4 h-4"/>
-                                        <span>생년월일</span>
-                                    </div>
-                                    <div className="text-gray-900">{member.birthDate}</div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                        <CreditCard className="w-4 h-4"/>
-                                        <span>면허번호</span>
-                                    </div>
-                                    <div className="text-gray-900">{member.licenseNumber}</div>
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                        <Calendar className="w-4 h-4"/>
-                                        <span>가입일</span>
-                                    </div>
-                                    <div className="text-gray-900">{member.joinDate}</div>
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                        <Car className="w-4 h-4"/>
-                                        <span>총 대여 횟수</span>
-                                    </div>
-                                    <div className="text-gray-900">{member.rentalCount}회</div>
-                                </div>
-
-                                <div>
-                                    <div className="flex items-center gap-2 text-gray-500 mb-2">
-                                        <User className="w-4 h-4"/>
-                                        <span>회원 상태</span>
-                                    </div>
-                                    <div className="text-gray-900">{member.status}</div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 대여 이력 탭 */}
-                    {activeTab === 'rental' && (
-                        <div>
-                            {rentalHistory.length > 0 ? (
-                                <div className="space-y-4">
-                                    {rentalHistory.map((rental) => (
-                                        <div
-                                            key={rental.id}
-                                            className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Car className="w-4 h-4 text-gray-500"/>
-                                                        <span className="text-gray-900">{rental.vehicleModel}</span>
-                                                        <span className="text-gray-500">({rental.licensePlate})</span>
-                                                    </div>
-                                                    <div className="text-gray-500 mt-1">
-                                                        {rental.startDate} ~ {rental.endDate}
-                                                    </div>
-                                                </div>
-                                                <span
-                                                    className={`inline-block px-3 py-1 rounded-full ${getRentalStatusColor(
-                                                        rental.status
-                                                    )}`}
-                                                >
-                          {rental.status}
-                        </span>
-                                            </div>
-                                            <div className="text-gray-900">
-                                                대여 비용: ₩{rental.cost.toLocaleString()}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 text-gray-500">
-                                    대여 이력이 없습니다
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* 사고 이력 탭 */}
-                    {activeTab === 'accident' && (
-                        <div>
-                            {accidentHistory.length > 0 ? (
-                                <div className="space-y-4">
-                                    {accidentHistory.map((accident) => (
-                                        <div
-                                            key={accident.id}
-                                            className="border border-red-200 bg-red-50 rounded-lg p-4"
-                                        >
-                                            <div className="flex justify-between items-start mb-3">
-                                                <div className="flex items-center gap-2">
-                                                    <AlertTriangle className="w-5 h-5 text-red-600"/>
-                                                    <span className="text-gray-900">{accident.date}</span>
-                                                </div>
-                                                <span
-                                                    className={`inline-block px-3 py-1 rounded-full ${getAccidentStatusColor(
-                                                        accident.status
-                                                    )}`}
-                                                >
-                          {accident.status}
-                        </span>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <div>
-                                                    <span className="text-gray-600">차량: </span>
-                                                    <span className="text-gray-900">
-                            {accident.vehicleModel} ({accident.licensePlate})
-                          </span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-gray-600">장소: </span>
-                                                    <span className="text-gray-900">{accident.location}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-gray-600">내용: </span>
-                                                    <span className="text-gray-900">{accident.description}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="text-gray-600">손해액: </span>
-                                                    <span className="text-red-600">
-                            ₩{accident.damageAmount.toLocaleString()}
-                          </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 text-gray-500">
-                                    사고 이력이 없습니다
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+  return (
+    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[150] p-4">
+      <div className="bg-white max-w-4xl w-full max-h-[90vh] flex flex-col border-[10px] border-black shadow-[20px_20px_0px_0px_rgba(255,255,255,0.3)]">
+        
+        {/* 헤더: 밝은 회색 배경 + 검정 글씨 */}
+        <div className="px-8 py-8 flex items-center justify-between bg-gray-300 border-b-[8px] border-black">
+          <div className="flex items-center gap-6">
+            <User className="w-14 h-14 text-black" strokeWidth={4} />
+            <div>
+              <h2 className="text-5xl font-black text-black">{member.clientName}</h2>
+              <p className="text-2xl font-black text-black mt-2 underline">
+                상태: {isBlacked ? "● [이용 차단됨]" : "○ [정상 회원]"}
+              </p>
             </div>
+          </div>
+          <button onClick={onClose} className="p-3 border-[5px] border-black hover:bg-gray-400">
+            <X className="w-12 h-12 text-black" strokeWidth={5} />
+          </button>
         </div>
-    );
+
+        {/* 본문: 흰색 배경 + 검정 글씨 */}
+        <div className="p-12 overflow-y-auto flex-1 bg-white">
+          {isBlacking ? (
+            <div className="space-y-8 text-black">
+              <h3 className="text-4xl font-black underline">서비스 이용 차단(블랙리스트)</h3>
+              <p className="text-2xl font-black bg-yellow-300 p-5 border-4 border-black">
+                ※ 회원 탈퇴가 아니며, 렌트 서비스 이용만 제한됩니다.
+              </p>
+              <textarea 
+                className="w-full h-56 p-6 text-3xl border-[8px] border-black text-black bg-white font-black outline-none placeholder:text-gray-400"
+                placeholder="차단 사유를 입력하세요."
+                value={blacklistInfo}
+                onChange={(e) => setBlacklistInfo(e.target.value)}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-16">
+              <DetailBox label="회원 번호" value={member.clientId} />
+              <DetailBox label="연락처" value={member.clientCall} />
+              <DetailBox label="면허번호" value={member.driverLicenceNumber} />
+              <DetailBox label="가입날짜" value={member.clientRegisterDate?.split('T')[0]} />
+              
+              {isBlacked && (
+                <div className="col-span-full p-8 bg-gray-100 border-[6px] border-black">
+                  <h4 className="text-black font-black text-3xl mb-4 underline">차단 사유</h4>
+                  <p className="text-black text-2xl font-black">{member.blackedInfo || '사유 없음'}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 푸터: 버튼도 무조건 검정 글씨/테두리 */}
+        <div className="p-10 border-t-[8px] border-black bg-gray-200 flex justify-end gap-8">
+          <button 
+            onClick={onClose} 
+            className="px-12 py-6 bg-white text-black font-black text-3xl border-[6px] border-black hover:bg-gray-400 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+          >
+            닫기
+          </button>
+
+          {isBlacking ? (
+            <button 
+              onClick={handleAddBlacklist} 
+              className="px-14 py-6 bg-black text-white font-black text-3xl hover:bg-gray-800 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.5)]"
+            >
+              차단 확정
+            </button>
+          ) : (
+            <>
+              {!isBlacked && (
+                <button 
+                  onClick={() => setIsBlacking(true)}
+                  className="px-10 py-6 bg-white text-black font-black text-3xl border-[6px] border-black hover:bg-orange-400 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  이용 차단 설정
+                </button>
+              )}
+              <button 
+                onClick={() => onUpdate?.(member)} 
+                className="px-10 py-6 bg-white text-black font-black text-3xl border-[6px] border-black hover:bg-indigo-400 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]"
+              >
+                정보 수정
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailBox({ label, value }) {
+  return (
+    <div className="border-b-[8px] border-black pb-4">
+      <p className="text-xl font-black text-gray-700 mb-2 italic underline">{label}</p>
+      <p className="text-4xl font-black text-black">{value || '-'}</p>
+    </div>
+  );
 }
