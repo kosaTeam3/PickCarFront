@@ -1,3 +1,4 @@
+// 1. 기본 설정 및 유틸리티 함수
 const DEFAULT_HEADERS = {
     "Content-Type": "application/json",
 };
@@ -20,6 +21,7 @@ function buildUrl(baseUrl, path, params) {
     return url.toString();
 }
 
+// 2. 핵심 API 호출 함수 (도구)
 export async function api(path, options = {}) {
     const {
         method = "GET",
@@ -61,3 +63,28 @@ export async function api(path, options = {}) {
 
     return await res.text();
 }
+
+// 3. 회원 관리 서비스 로직 (사용처)
+// 같은 파일 안에 있으므로 import 필요 없이 바로 api 함수를 사용합니다.
+export const clientService = {
+  getClients: () => 
+    api("/api/manager/client"),
+  
+  searchClients: (keyword) => 
+    api("/api/manager/client", { params: { keyword } }),
+  
+  getClientDetail: (clientId) => 
+    api(`/api/manager/client/${clientId}`),
+  
+  getRentHistory: (clientId) => 
+    api(`/api/manager/client/rent/${clientId}`),
+
+  getAccidentHistory: (clientId) => 
+    api(`/api/manager/client/accident/${clientId}`),
+  
+  addBlacklist: (clientId, data) => 
+    api(`/api/manager/client/black/${clientId}`, {
+      method: "POST",
+      body: data
+    }),
+};
