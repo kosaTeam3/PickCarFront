@@ -9,6 +9,15 @@ export function MemberManagement() {
   const [searchTerm, setSearchTerm] = useState(""); // 1. 검색어 상태
   const [selectedMember, setSelectedMember] = useState(null); // 2. 선택된 회원 상세 정보
 
+  const fetchMemberList = async () => {
+      try {
+        const response = await memberService.getAllMembers(); // 서비스 명칭 확인 필요
+        setMembers(response.data || response); 
+      } catch (error) {
+        console.error("목록 로딩 실패:", error);
+      }
+    };
+
   useEffect(() => {
     const initData = async () => {
       try {
@@ -125,7 +134,8 @@ const handleRowClick = async (clientId) => {
       {selectedMember && (
         <MemberDetailModal 
             member={selectedMember} 
-            onClose={() => setSelectedMember(null)} 
+            onClose={() => setSelectedMember(null)}
+            onRefresh={fetchMemberList}
         />
       )}
     </div>

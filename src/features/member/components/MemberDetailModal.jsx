@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { X, User, ShieldAlert, Edit3, AlertCircle, Ban } from 'lucide-react';
+import { X, User } from 'lucide-react';
 import { clientService } from "@/api/client"; 
 
-export function MemberDetailModal({ member, onClose, onUpdate }) {
+export function MemberDetailModal({ member, onClose, onUpdate, onRefresh }) {
   const [isBlacking, setIsBlacking] = useState(false); 
   const [blacklistInfo, setBlacklistInfo] = useState(''); 
   const isBlacked = member.blacked;
@@ -12,8 +12,11 @@ export function MemberDetailModal({ member, onClose, onUpdate }) {
     try {
       await clientService.addBlacklist(member.clientId, { blacklistInfo });
       alert("이 회원의 서비스 이용이 차단되었습니다.");
+      if (onRefresh) await onRefresh();
       onClose(); 
     } catch (error) {
+      console.error("상세 에러:", error); // ✅ 이 줄을 추가해서 브라우저 개발자 도구(F12) 콘솔을 확인하세요.
+  console.log("에러 응답 데이터:", error.response?.data);
       alert("실패: 권한이 없습니다.");
     }
   };
